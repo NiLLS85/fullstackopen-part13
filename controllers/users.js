@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs')
 const router = require('express').Router()
 const { User, Blog } = require('../models')
 
@@ -11,8 +12,11 @@ router.get('/', async (req, res) => {
   res.json(users)
 })
 
+// La contraseña es opcional; si llega se guarda solo su hash
 router.post('/', async (req, res) => {
-  const user = await User.create(req.body)
+  const { username, name, password } = req.body
+  const passwordHash = password ? await bcrypt.hash(password, 10) : null
+  const user = await User.create({ username, name, passwordHash })
   res.status(201).json(user)
 })
 
@@ -39,13 +43,13 @@ router.get('/:id', async (req, res) => {
     return res.status(404).json({ error: 'user not found' })
   }
 
-  // Formato del enunciado: cada blog lleva "readinglists" con el estado de lectura y su id
+  // Cada blog lleva "readingList" con el estado de lectura y el id de la entrada
   const { readings, ...rest } = user.toJSON()
   return res.json({
     ...rest,
     readings: readings.map(({ readinglist, ...blog }) => ({
       ...blog,
-      readinglists: [readinglist],
+      readingList: readinglist,
     })),
   })
 })

@@ -1,7 +1,14 @@
 const { Model, DataTypes } = require('sequelize')
 const { sequelize } = require('../util/db')
 
-class User extends Model {}
+class User extends Model {
+  // El hash de la contraseña nunca sale en las respuestas de la API
+  toJSON() {
+    const values = this.get({ plain: true })
+    delete values.passwordHash
+    return values
+  }
+}
 
 User.init({
   id: {
@@ -20,6 +27,9 @@ User.init({
   name: {
     type: DataTypes.STRING,
     allowNull: false,
+  },
+  passwordHash: {
+    type: DataTypes.STRING,
   },
   disabled: {
     type: DataTypes.BOOLEAN,

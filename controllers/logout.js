@@ -2,9 +2,9 @@ const router = require('express').Router()
 const { Session } = require('../models')
 const { tokenExtractor } = require('../util/middleware')
 
-// Cierra la sesión del token usado: deja de valer aunque la firma sea correcta
+// Cierra todas las sesiones del usuario: ninguno de sus tokens vuelve a valer
 router.delete('/', tokenExtractor, async (req, res) => {
-  await Session.destroy({ where: { token: req.token } })
+  await Session.destroy({ where: { userId: req.user.id } })
   res.status(204).end()
 })
 

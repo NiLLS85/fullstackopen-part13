@@ -1,18 +1,28 @@
 const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs')
 const router = require('express').Router()
 
 const { SECRET } = require('../util/config')
 const { User, Session } = require('../models')
+
+// Si el usuario tiene contraseña propia se compara con su hash; si no, vale la
+// contraseña común "secret" del material del curso
+const passwordMatches = async (user, password) => {
+  if (!user || typeof password !== 'string') {
+    return false
+  }
+  if (user.passwordHash) {
+    return bcrypt.compare(password, user.passwordHash)
+  }
+  return password === 'secret'
+}
 
 router.post('/', async (req, res) => {
   const { username, password } = req.body
 
   const user = await User.findOne({ where: { username } })
 
-  // Como en el material del curso, todos los usuarios tienen la misma contraseña
-  const passwordCorrect = password === 'secret'
-
-  if (!(user && passwordCorrect)) {
+  if (!(await passwordMatches(user, password))) {
     return res.status(401).json({ error: 'invalid username or password' })
   }
   if (user.disabled) {

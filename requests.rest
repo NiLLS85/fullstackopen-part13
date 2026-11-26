@@ -4,7 +4,7 @@ Content-Type: application/json
 
 { "username": "mluukkai@iki.fi", "name": "Matti Luukkainen" }
 
-### Login (la contraseña de todos es "secret")
+### Login (los usuarios creados sin contraseña entran con "secret")
 POST http://localhost:3001/api/login
 Content-Type: application/json
 

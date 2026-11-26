@@ -19,6 +19,7 @@ Otros comandos:
 
 - `npm run cli`: imprime los blogs en la terminal (ejercicio 13.2).
 - `npm run migration:down`: deshace la última migración.
+- `npm run start:test` y `npm test`: arrancan el servidor contra la base de datos de pruebas y pasan las pruebas del curso (ver más abajo).
 
 ## Estructura
 
@@ -56,9 +57,29 @@ Otros comandos:
 - 13.19 y 13.20: tabla `readinglists` y `POST /api/readinglists` con `{ "blogId", "userId" }`.
 - 13.21 y 13.23: `GET /api/users/:id` devuelve la lista de lectura del usuario, filtrable con `?read=true` o `?read=false`.
 - 13.22: `PUT /api/readinglists/:id` con `{ "read": true }` marca un blog como leído; solo el dueño de la lista.
-- 13.24: las sesiones se guardan en la tabla `sessions`; `DELETE /api/logout` cierra la sesión del token. Un usuario se desactiva en la base de datos (`UPDATE users SET disabled = true WHERE ...`): ya no puede entrar y sus tokens dejan de valer.
+- 13.24: las sesiones se guardan en la tabla `sessions`; `DELETE /api/logout` cierra todas las sesiones del usuario. Un usuario se desactiva en la base de datos (`UPDATE users SET disabled = true WHERE ...`): ya no puede entrar y sus tokens dejan de valer.
 
-Como en el material del curso, la contraseña de todos los usuarios es `secret`.
+## Contraseñas
+
+`POST /api/users` acepta un campo `password` opcional y guarda solo su hash (bcryptjs, columna `password_hash`). Al hacer login se compara con ese hash. Los usuarios creados sin contraseña entran con `secret`, como en el material del curso.
+
+## Pruebas automáticas
+
+El curso en MOOC.fi trae unas pruebas oficiales ([fullstack-hy2020/tests, fs-psql](https://github.com/fullstack-hy2020/tests/tree/main/fs-psql)) que están copiadas en `tests/` y `.github/workflows/test.yml`. Para ellas:
+
+- Con `TESTING=true` la aplicación usa `TEST_DATABASE_URL` en lugar de `DATABASE_URL`.
+- `GET /` responde 200, para saber cuándo está arrancado el servidor.
+- `POST /api/reset` vacía todas las tablas. Solo existe en modo de pruebas.
+
+En local:
+
+```bash
+docker exec fso-pg psql -U postgres -c 'CREATE DATABASE test_db'
+TEST_DATABASE_URL=postgresql://postgres:salainen@localhost:5432/test_db SECRET=test_secret npm run start:test
+npm test        # en otra terminal: pruebas de los capítulos 3 y 4
+```
+
+En GitHub Actions se pasan solas en cada push, con un PostgreSQL 17 como servicio.
 
 ## Uso de IA
 
