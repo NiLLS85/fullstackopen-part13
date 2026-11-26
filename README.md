@@ -76,7 +76,7 @@ En local:
 ```bash
 docker exec fso-pg psql -U postgres -c 'CREATE DATABASE test_db'
 TEST_DATABASE_URL=postgresql://postgres:salainen@localhost:5432/test_db SECRET=test_secret npm run start:test
-npm test        # en otra terminal: pruebas de los capítulos 3 y 4
+npm test        # en otra terminal: todas las pruebas de tests/
 ```
 
 En GitHub Actions se pasan solas en cada push, con un PostgreSQL 17 como servicio.
