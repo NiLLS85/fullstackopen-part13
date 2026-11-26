@@ -35,12 +35,8 @@ router.get('/', async (req, res) => {
 })
 
 router.post('/', tokenExtractor, async (req, res) => {
-  const user = await User.findByPk(req.decodedToken.id)
-  if (!user) {
-    return res.status(401).json({ error: 'user not found' })
-  }
-  const blog = await Blog.create({ ...req.body, userId: user.id })
-  return res.status(201).json(blog)
+  const blog = await Blog.create({ ...req.body, userId: req.user.id })
+  res.status(201).json(blog)
 })
 
 router.get('/:id', blogFinder, async (req, res) => {
@@ -48,7 +44,7 @@ router.get('/:id', blogFinder, async (req, res) => {
 })
 
 router.delete('/:id', tokenExtractor, blogFinder, async (req, res) => {
-  if (req.blog.userId !== req.decodedToken.id) {
+  if (req.blog.userId !== req.user.id) {
     return res.status(403).json({ error: 'only the creator can delete a blog' })
   }
   await req.blog.destroy()

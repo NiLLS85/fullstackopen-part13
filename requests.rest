@@ -1,0 +1,44 @@
+### Crear un usuario
+POST http://localhost:3001/api/users
+Content-Type: application/json
+
+{ "username": "mluukkai@iki.fi", "name": "Matti Luukkainen" }
+
+### Login (la contraseña de todos es "secret")
+POST http://localhost:3001/api/login
+Content-Type: application/json
+
+{ "username": "mluukkai@iki.fi", "password": "secret" }
+
+### Crear un blog (pega el token del login)
+POST http://localhost:3001/api/blogs
+Content-Type: application/json
+Authorization: Bearer TOKEN
+
+{ "author": "Dan Abramov", "url": "https://overreacted.io/on-let-vs-const/", "title": "On let vs const", "year": 2019 }
+
+### Buscar blogs
+GET http://localhost:3001/api/blogs?search=react
+
+### Autores
+GET http://localhost:3001/api/authors
+
+### Añadir a la lista de lectura
+POST http://localhost:3001/api/readinglists
+Content-Type: application/json
+
+{ "blogId": 1, "userId": 1 }
+
+### Lista de lectura de un usuario (solo los no leídos)
+GET http://localhost:3001/api/users/1?read=false
+
+### Marcar como leído
+PUT http://localhost:3001/api/readinglists/1
+Content-Type: application/json
+Authorization: Bearer TOKEN
+
+{ "read": true }
+
+### Cerrar sesión
+DELETE http://localhost:3001/api/logout
+Authorization: Bearer TOKEN

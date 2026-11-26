@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken')
 const router = require('express').Router()
 
 const { SECRET } = require('../util/config')
-const { User } = require('../models')
+const { User, Session } = require('../models')
 
 router.post('/', async (req, res) => {
   const { username, password } = req.body
@@ -15,9 +15,15 @@ router.post('/', async (req, res) => {
   if (!(user && passwordCorrect)) {
     return res.status(401).json({ error: 'invalid username or password' })
   }
+  if (user.disabled) {
+    return res.status(401).json({ error: 'account disabled, please contact admin' })
+  }
 
   const userForToken = { username: user.username, id: user.id }
   const token = jwt.sign(userForToken, SECRET)
+
+  // La sesión se guarda en la base de datos para poder cerrarla (13.24)
+  await Session.create({ userId: user.id, token })
 
   return res.status(200).send({ token, username: user.username, name: user.name })
 })

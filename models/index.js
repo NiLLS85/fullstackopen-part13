@@ -1,10 +1,17 @@
 const Blog = require('./blog')
 const User = require('./user')
+const Readinglist = require('./readinglist')
+const Session = require('./session')
+
+// Las tablas se crean con migraciones (carpeta migrations), no con sync()
 
 User.hasMany(Blog)
 Blog.belongsTo(User)
 
-Blog.sync({ alter: true })
-User.sync({ alter: true })
+User.belongsToMany(Blog, { through: Readinglist, as: 'readings' })
+Blog.belongsToMany(User, { through: Readinglist, as: 'readers' })
 
-module.exports = { Blog, User }
+User.hasMany(Session)
+Session.belongsTo(User)
+
+module.exports = { Blog, User, Readinglist, Session }
