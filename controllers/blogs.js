@@ -1,5 +1,7 @@
 const router = require('express').Router()
-const { Blog } = require('../models')
+const { Op } = require('sequelize')
+const { Blog, User } = require('../models')
+const { tokenExtractor } = require('../util/middleware')
 
 const blogFinder = async (req, res, next) => {
   req.blog = await Blog.findByPk(req.params.id)
@@ -10,22 +12,47 @@ const blogFinder = async (req, res, next) => {
 }
 
 router.get('/', async (req, res) => {
-  const blogs = await Blog.findAll()
+  const where = {}
+
+  // ?search=texto busca en el título y en el autor, sin distinguir mayúsculas
+  if (req.query.search) {
+    where[Op.or] = [
+      { title: { [Op.iLike]: `%${req.query.search}%` } },
+      { author: { [Op.iLike]: `%${req.query.search}%` } },
+    ]
+  }
+
+  const blogs = await Blog.findAll({
+    attributes: { exclude: ['userId'] },
+    include: {
+      model: User,
+      attributes: ['name'],
+    },
+    where,
+    order: [['likes', 'DESC']],
+  })
   res.json(blogs)
 })
 
-router.post('/', async (req, res) => {
-  const blog = await Blog.create(req.body)
-  res.status(201).json(blog)
+router.post('/', tokenExtractor, async (req, res) => {
+  const user = await User.findByPk(req.decodedToken.id)
+  if (!user) {
+    return res.status(401).json({ error: 'user not found' })
+  }
+  const blog = await Blog.create({ ...req.body, userId: user.id })
+  return res.status(201).json(blog)
 })
 
 router.get('/:id', blogFinder, async (req, res) => {
   res.json(req.blog)
 })
 
-router.delete('/:id', blogFinder, async (req, res) => {
+router.delete('/:id', tokenExtractor, blogFinder, async (req, res) => {
+  if (req.blog.userId !== req.decodedToken.id) {
+    return res.status(403).json({ error: 'only the creator can delete a blog' })
+  }
   await req.blog.destroy()
-  res.status(204).end()
+  return res.status(204).end()
 })
 
 router.put('/:id', blogFinder, async (req, res) => {
